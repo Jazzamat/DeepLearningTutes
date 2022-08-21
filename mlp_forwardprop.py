@@ -1,6 +1,7 @@
 import re
 
 import numpy as np
+from random import random
 
 # save activations and derivatives
 
@@ -27,7 +28,7 @@ class MLP:
 
         layers = [self.num_input] + self.num_hidden + [self.num_output]
         
-        print(layers)
+    
         
         #initiate random weights
         self.weights = []
@@ -54,8 +55,34 @@ class MLP:
 
 
 
-    def train(self,inputs,targers,epochs,learning_rate)
+    def train(self,inputs,targets,epochs,learning_rate):
 
+        sum_error = 0
+        for i in range(epochs):
+            for j, (input,target) in enumerate(zip(inputs,targets)):
+              
+                # perform forward prop
+                output = self.forward_propagate(inputs)
+
+                # calcualte the error
+                error = target - output
+
+                #perform back prop
+                self.back_propagate(error)
+
+                #apply gradient decent
+                self.gradient_decent(learning_rate)
+
+                #report the error
+                sum_error += self._mse(target, output)
+
+            print(f"Error: {sum_error/len(inputs)} at epoch {i}")
+
+        return
+
+
+    def _mse(self, target, output):
+        return np.average((target - output)**2)
 
     def _sigmoid(self, x):
         return 1/(1+np.exp(-x))
@@ -66,14 +93,12 @@ class MLP:
             weights = self.weights[i]
 
          
-
-
             derivatives = self.derivatives[i]
             weights += derivatives * learning_rate
 
         
             # self.weights[i] = weights
-        return
+        
 
 
     def back_propagate(self,error, verbose=False):
@@ -91,8 +116,8 @@ class MLP:
 
             error = np.dot(delta,self.weights[i].T)
 
-            if verbose:
-                print(f"Derivatives for W{i}:{self.derivatives[i]}")
+           
+            
 
 
         return error
@@ -127,28 +152,12 @@ if __name__ == "__main__":
     mlp = MLP(2, [5], 1)
 
     # create some inputs
-    inputs = np.array([0.1,0.2])
-    target = np.array([0.3])
 
-    # perform forward prop
-    output = mlp.forward_propagate(inputs)
-
-    # calcualte the error
-
-    error = target - output
-
-    
-
-    #perform back prop
-    mlp.back_propagate(error, True)
-
-
-    #apply gradient decent
-    mlp.gradient_decent(learning_rate=1)
+    inputs = np.array([[random()/2 for _ in range(2)] for _ in range (2000)])
+    targets = np.array([[i[0] + i[1]] for i in inputs])
 
 
     #train the network
-
-
+    mlp.train(inputs, targets, 5000000, 0.1)
+ 
     # print results
-    print(output)
